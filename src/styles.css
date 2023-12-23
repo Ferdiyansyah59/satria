@@ -1,0 +1,47 @@
+.fixed-header {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	background-color: rgba(0, 0, 0, 0);
+	transition: background-color 0.3s ease;
+	z-index: 1000;
+}
+.fixed-header.active {
+	background-color: #ff6600;
+}
+
+.ideas {
+	text-decoration: underline;
+	text-decoration-thickness: 2px; /* Ubah ketebalan garis bawah sesuai kebutuhan */
+	text-decoration-color: wh; /* Ubah warna garis bawah sesuai kebutuhan */
+	text-underline-offset: 4px;
+}
+
+.navbar-menu li a.active {
+	font-weight: bold;
+	color: #ff0000;
+}
+.banner-bottom-shape {
+	clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+	background: linear-gradient(
+		to bottom right,
+		transparent calc(50% - 1px),
+		white calc(50% + 1px)
+	);
+}
+.pagination-container {
+	display: flex;
+	justify-content: center;
+	margin-top: 20px;
+}
+.pagination-container button {
+	margin: 0 5px;
+}
+.pagination-container button:disabled {
+	opacity: 0.6;
+}
+.current-page {
+	background-color: #333;
+	color: #fff;
+}

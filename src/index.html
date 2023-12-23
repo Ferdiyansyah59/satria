@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Project Test</title>
+    <link
+      href="styles.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <!-- Menggunakan CDN untuk Tailwind CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <header class="fixed-header">
+      <nav class="container mx-auto flex justify-between items-center">
+        <div class="navbar-logo">
+          <a href="#"
+            ><img
+              src="../assets/img/logo2.png"
+              class="w-20"
+          /></a>
+        </div>
+        <ul class="navbar-menu flex space-x-4 text-white">
+          <li><a href="#work">Work</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#services">Services</a></li>
+          <li>
+            <a
+              href="#ideas"
+              class="ideas"
+              >Ideas</a
+            >
+          </li>
+          <li><a href="#careers">Careers</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+    <div
+      class="banner bg-cover bg-center h-80 flex flex-col justify-center items-center text-white relative"
+      style="background-image: url('../assets/img/bg.jpg')"
+    >
+      <!-- Konten banner -->
+      <h1 class="text-4xl font-bold">Ideas</h1>
+      <div>
+        <p>Where all our great things begin</p>
+      </div>
+      <!-- Area miring pada bagian bawah banner -->
+      <div
+        class="banner-bottom-shape absolute bottom-0 left-0 right-0"
+        style="height: 50px"
+      >
+        <div
+          class="w-full h-full"
+          style="
+            background: linear-gradient(
+              to bottom right,
+              transparent calc(50% - 1px),
+              white calc(50% + 1px)
+            );
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+          "
+        ></div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="justify-center items-center mb-4 mx-10">
+        <div class="flex justify-between mb-4">
+          <div>
+            Showing 1 - 10 of 100
+            <!-- Informasi jumlah item yang ditampilkan -->
+          </div>
+          <div class="flex items-center space-x-4">
+            <label for="jumlah">Show per Page:</label>
+            <select
+              name="jumlah"
+              id="jumlah"
+              class="border rounded-md px-2 py-1"
+            >
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+            <!-- Dropdown untuk sort by -->
+            <label for="sort">Sort by:</label>
+            <select
+              name="sort"
+              id="sort"
+              class="border rounded-md px-2 py-1"
+            >
+              <option value="terbaru">Terbaru</option>
+              <option value="terlama">Terlama</option>
+            </select>
+          </div>
+        </div>
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-center justify-center"
+          id="datap"
+        ></div>
+
+        <div class="pagination-container">
+          <button
+            class="bg-gray-200 px-3 py-1 rounded-md previous-page"
+            disabled
+          >
+            &laquo;
+          </button>
+          <button
+            class="bg-gray-200 px-3 py-1 rounded-md next-page"
+            disabled
+          >
+            &lsaquo;
+          </button>
+        </div>
+      </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+
+    <script>
+      let lastScrollTop = 0;
+
+      window.addEventListener(
+        'scroll',
+        function () {
+          let currentScroll =
+            window.pageYOffset || document.documentElement.scrollTop;
+
+          if (currentScroll > lastScrollTop) {
+            // Scroll ke bawah
+            document.querySelector('.fixed-header').classList.remove('active');
+          } else {
+            // Scroll ke atas
+            document.querySelector('.fixed-header').classList.add('active');
+          }
+          lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+        },
+        false,
+      );
+      let totalData = 0;
+      let perPage = 10;
+      let currentPage = 1;
+
+      $(document).ready(() => {
+        function getData(jumlah, sortBy) {
+          let sortField =
+            sortBy === 'terbaru' ? '-published_at' : 'published_at';
+
+          $.ajax({
+            url: 'https://suitmedia-backend.suitdev.com/api/ideas',
+            type: 'GET',
+            dataType: 'json',
+            data: {
+              'page[number]': currentPage,
+              'page[size]': jumlah,
+              'append[]': ['small_image', 'medium_image'],
+              sort: sortField,
+            },
+            headers: {
+              Accept: 'application/json',
+            },
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+              totalData = result.meta.total;
+              let data = result.data;
+              let html = '';
+              for (let i = 0; i < data.length; i++) {
+                html += generateCard(data[i]);
+              }
+              $('#datap').html(html);
+
+              renderPagination();
+            },
+            error: function (error) {
+              console.log(error);
+            },
+          });
+        }
+
+        function generateCard(data) {
+          let publishedDate = new Date(data.published_at);
+          let formattedDate = publishedDate.toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+
+          return `
+                    <div class="bg-white rounded-lg overflow-hidden shadow-md">
+                        <img src="${data.medium_image[0].url}" alt="${data.title}" class="w-full h-40 object-cover object-center">
+                        <div class="p-4">
+                            <p class="text-gray-600"> ${formattedDate}</p>
+                            <h3 class="text-lg font-semibold mb-2">${data.title}</h3>
+                            <!-- Tambahkan informasi lain yang diperlukan -->
+                        </div>
+                    </div>
+                `;
+        }
+
+        function renderPagination() {
+          const totalPages = Math.ceil(totalData / perPage);
+          const prevButton = $('.previous-page');
+          const nextButton = $('.next-page');
+          const paginationContainer = $('.pagination-container');
+
+          paginationContainer.empty();
+
+          if (currentPage !== 1) {
+            prevButton.prop('disabled', false);
+            paginationContainer.append(
+              `<button class="bg-gray-200 px-3 py-1 rounded-md previous-page">&laquo;</button>`,
+            );
+          } else {
+            prevButton.prop('disabled', true);
+            paginationContainer.append(
+              `<button class="bg-gray-200 px-3 py-1 rounded-md" disabled>&laquo;</button>`,
+            );
+          }
+
+          let startPage = 1;
+          if (currentPage > 2) {
+            startPage = currentPage - 1;
+          }
+
+          const endPage = Math.min(startPage + 2, totalPages);
+
+          if (startPage > 1) {
+            paginationContainer.append(
+              `<button class="bg-gray-200 px-3 py-1 rounded-md">${
+                startPage - 1
+              }</button>`,
+            );
+          }
+
+          for (let i = startPage; i <= endPage; i++) {
+            paginationContainer.append(
+              `<button class="bg-gray-200 px-3 py-1 rounded-md${
+                i === currentPage ? ' current-page' : ''
+              }">${i}</button>`,
+            );
+          }
+
+          if (endPage < totalPages) {
+            paginationContainer.append(
+              `<button class="bg-gray-200 px-3 py-1 rounded-md">${
+                endPage + 1
+              }</button>`,
+            );
+          }
+
+          if (currentPage !== totalPages) {
+            nextButton.prop('disabled', false);
+            paginationContainer.append(
+              `<button class="bg-gray-200 px-3 py-1 rounded-md next-page">&rsaquo;</button>`,
+            );
+          } else {
+            nextButton.prop('disabled', true);
+            paginationContainer.append(
+              `<button class="bg-gray-200 px-3 py-1 rounded-md" disabled>&rsaquo;</button>`,
+            );
+          }
+
+          $('.pagination-container button').on('click', function () {
+            const buttonText = $(this).text();
+            if (buttonText === '«') {
+              currentPage -= 1;
+            } else if (buttonText === '»') {
+              currentPage += 1;
+            } else {
+              currentPage = parseInt(buttonText);
+            }
+            getData(perPage, $('#sort').val());
+          });
+        }
+
+        $('#sort').change(async function () {
+          let sortBy = await $(this).find(':selected').val();
+          let jumlah = $('#jumlah').find(':selected').val();
+          getData(jumlah, sortBy);
+        });
+
+        $('#jumlah').change(async function () {
+          let jumlah = await $(this).find(':selected').val();
+          let sortBy = $('#sort').find(':selected').val();
+          getData(jumlah, sortBy);
+        });
+
+        getData(perPage, 'terbaru');
+      });
+    </script>
+  </body>
+</html>
